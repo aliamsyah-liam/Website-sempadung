@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Login Admin | Sempadung</title>
+<link rel="stylesheet" href="style.css">
+<style>
+ .login-wrap{max-width:420px;margin:80px auto;padding:0 20px}
+ .login-card{background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:36px 28px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+ .login-card h1{font-size:1.8rem;margin:0 0 6px}
+ .login-card p{color:#666;margin:0 0 24px;font-size:.95rem}
+ .field{margin-bottom:16px}
+ .field label{display:block;font-weight:600;font-size:.9rem;margin-bottom:6px}
+ .field input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:1rem;box-sizing:border-box}
+ .login-status{min-height:20px;font-size:.9rem;margin-top:12px}
+ .login-status.err{color:#c0392b}
+ .switch-link{text-align:center;margin-top:18px;font-size:.9rem;color:#666}
+ .switch-link a{color:var(--brand,#2e7d32);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="container nav">
+  <a class="logo" href="index.html"><span class="logo-mark">🌿</span><span>SEMPADUNG</span></a>
+  <button class="menu" aria-label="Menu">☰</button>
+  <ul class="links">
+   <li><a href="index.html">Beranda</a></li>
+   <li><a href="tentang.html">Tentang</a></li>
+   <li><a href="potensi.html">Potensi</a></li>
+   <li><a href="pendidikan.html">Pendidikan</a></li>
+   <li><a href="galeri.html">Galeri</a></li>
+   <li><a href="buku-tamu.html">Buku Tamu</a></li>
+  </ul>
+ </div>
+</header>
+
+<main>
+<div class="login-wrap">
+ <div class="login-card">
+  <h1>Login Admin</h1>
+  <p>Masuk untuk melihat data buku tamu (nama, email, dan pesan pengunjung).</p>
+  <form id="loginForm">
+   <div class="field">
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Masukkan username" required>
+   </div>
+   <div class="field">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Masukkan password" required>
+   </div>
+   <button type="submit" class="btn primary" id="loginBtn" style="width:100%">Masuk</button>
+   <p id="loginStatus" class="login-status"></p>
+  </form>
+  <p class="switch-link">Belum punya akun? <a href="admin-register.html">Daftar akun admin</a></p>
+ </div>
+</div>
+</main>
+
+<footer><div class="container footer">
+ <div><b>🌿 SEMPADUNG</b><br><span class="small">Website Profil & Dokumentasi Sempadung</span></div>
+ <div class="small">© 2026 · Satu website, lima halaman</div>
+</div></footer>
+
+<script src="script.js"></script>
+<script>
+// ============================================
+// GANTI URL DI BAWAH INI dengan Web App URL
+// hasil Deploy dari Google Apps Script kamu (sama seperti di guestbook.js)
+// ============================================
+const ADMIN_API_URL = "https://script.google.com/macros/s/AKfycbyBbUk-zqwrBUJFrIFezz4glHJ-rr6yyU-27ww0QvKRuOUiE1igBY_jRhawdlrGu0j-/exec";
+
+const loginForm = document.getElementById('loginForm');
+const loginStatus = document.getElementById('loginStatus');
+const loginBtn = document.getElementById('loginBtn');
+
+loginForm.addEventListener('submit', async (e) => {
+ e.preventDefault();
+ const username = document.getElementById('username').value.trim();
+ const password = document.getElementById('password').value;
+
+ if (!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_URL')) {
+  loginStatus.textContent = 'Server belum terhubung, hubungi pengelola website.';
+  loginStatus.className = 'login-status err';
+  return;
+ }
+
+ loginBtn.disabled = true;
+ loginStatus.textContent = 'Memeriksa...';
+ loginStatus.className = 'login-status';
+
+ try {
+  const res = await fetch(ADMIN_API_URL, {
+   method: 'POST',
+   headers: { 'Content-Type': 'text/plain' },
+   body: JSON.stringify({ action: 'login', username, password })
+  });
+  const result = await res.json();
+
+  if (result.status === 'success') {
+   sessionStorage.setItem('adminUsername', username);
+   sessionStorage.setItem('adminPassword', password);
+   window.location.href = 'buku-tamu.html?login=success';
+  } else {
+   loginStatus.textContent = result.message || 'Username atau password salah.';
+   loginStatus.className = 'login-status err';
+  }
+ } catch (err) {
+  loginStatus.textContent = 'Gagal terhubung ke server, coba lagi.';
+  loginStatus.className = 'login-status err';
+ } finally {
+  loginBtn.disabled = false;
+ }
+});
+</script>
+</body>
+</html>

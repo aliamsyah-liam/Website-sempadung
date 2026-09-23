@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Daftar Akun Admin | Sempadung</title>
+<link rel="stylesheet" href="style.css">
+<style>
+ .login-wrap{max-width:420px;margin:80px auto;padding:0 20px}
+ .login-card{background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:36px 28px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+ .login-card h1{font-size:1.8rem;margin:0 0 6px}
+ .login-card p{color:#666;margin:0 0 24px;font-size:.95rem}
+ .field{margin-bottom:16px}
+ .field label{display:block;font-weight:600;font-size:.9rem;margin-bottom:6px}
+ .field input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:1rem;box-sizing:border-box}
+ .field small{display:block;margin-top:6px;color:#888;font-size:.8rem}
+ .login-status{min-height:20px;font-size:.9rem;margin-top:12px}
+ .login-status.err{color:#c0392b}
+ .login-status.ok{color:#2e7d32}
+ .switch-link{text-align:center;margin-top:18px;font-size:.9rem;color:#666}
+ .switch-link a{color:var(--brand,#2e7d32);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="container nav">
+  <a class="logo" href="index.html"><span class="logo-mark">🌿</span><span>SEMPADUNG</span></a>
+  <button class="menu" aria-label="Menu">☰</button>
+  <ul class="links">
+   <li><a href="index.html">Beranda</a></li>
+   <li><a href="tentang.html">Tentang</a></li>
+   <li><a href="potensi.html">Potensi</a></li>
+   <li><a href="pendidikan.html">Pendidikan</a></li>
+   <li><a href="galeri.html">Galeri</a></li>
+   <li><a href="buku-tamu.html">Buku Tamu</a></li>
+  </ul>
+ </div>
+</header>
+
+<main>
+<div class="login-wrap">
+ <div class="login-card">
+  <h1>Daftar Akun Admin</h1>
+  <p>Buat akun baru untuk bisa masuk ke dashboard buku tamu.</p>
+  <form id="registerForm">
+   <div class="field">
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Buat username" required>
+   </div>
+   <div class="field">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Buat password" required minlength="4">
+    <small>Minimal 4 karakter.</small>
+   </div>
+   <div class="field">
+    <label for="password2">Ulangi Password</label>
+    <input type="password" id="password2" placeholder="Ulangi password" required minlength="4">
+   </div>
+   <button type="submit" class="btn primary" id="registerBtn" style="width:100%">Daftar</button>
+   <p id="registerStatus" class="login-status"></p>
+  </form>
+  <p class="switch-link">Sudah punya akun? <a href="admin-login.html">Masuk di sini</a></p>
+ </div>
+</div>
+</main>
+
+<footer><div class="container footer">
+ <div><b>🌿 SEMPADUNG</b><br><span class="small">Website Profil & Dokumentasi Sempadung</span></div>
+ <div class="small">© 2026 · Satu website, lima halaman</div>
+</div></footer>
+
+<script src="script.js"></script>
+<script>
+// ============================================
+// GANTI URL DI BAWAH INI, sama persis seperti
+// di admin-login.html, admin.html, dan guestbook.js
+// ============================================
+const ADMIN_API_URL = "https://script.google.com/macros/s/AKfycbyBbUk-zqwrBUJFrIFezz4glHJ-rr6yyU-27ww0QvKRuOUiE1igBY_jRhawdlrGu0j-/exec";
+
+const registerForm = document.getElementById('registerForm');
+const registerStatus = document.getElementById('registerStatus');
+const registerBtn = document.getElementById('registerBtn');
+
+registerForm.addEventListener('submit', async (e) => {
+ e.preventDefault();
+ const username = document.getElementById('username').value.trim();
+ const password = document.getElementById('password').value;
+ const password2 = document.getElementById('password2').value;
+
+ if (password !== password2) {
+  registerStatus.textContent = 'Password dan ulangi password tidak sama.';
+  registerStatus.className = 'login-status err';
+  return;
+ }
+
+ if (!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_URL')) {
+  registerStatus.textContent = 'Server belum terhubung, hubungi pengelola website.';
+  registerStatus.className = 'login-status err';
+  return;
+ }
+
+ registerBtn.disabled = true;
+ registerStatus.textContent = 'Mendaftarkan...';
+ registerStatus.className = 'login-status';
+
+ try {
+  const res = await fetch(ADMIN_API_URL, {
+   method: 'POST',
+   headers: { 'Content-Type': 'text/plain' },
+   body: JSON.stringify({ action: 'register', username, password })
+  });
+  const result = await res.json();
+
+  if (result.status === 'success') {
+   registerStatus.textContent = 'Akun berhasil dibuat, mengalihkan ke login...';
+   registerStatus.className = 'login-status ok';
+   setTimeout(() => { window.location.href = 'admin-login.html'; }, 1200);
+  } else {
+   registerStatus.textContent = result.message || 'Gagal mendaftar, coba lagi.';
+   registerStatus.className = 'login-status err';
+   registerBtn.disabled = false;
+  }
+ } catch (err) {
+  registerStatus.textContent = 'Gagal terhubung ke server, coba lagi.';
+  registerStatus.className = 'login-status err';
+  registerBtn.disabled = false;
+ }
+});
+</script>
+</body>
+</html>

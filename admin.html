@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard Admin | Sempadung</title>
+<link rel="stylesheet" href="style.css">
+<style>
+ .admin-wrap{padding:40px 0}
+ .admin-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+ .admin-top h1{margin:0;font-size:2rem}
+ .btn-logout{background:none;border:1px solid #ccc;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:.9rem}
+ .admin-status{color:#666;margin-bottom:16px}
+ .table-wrap{overflow-x:auto;border:1px solid #eee;border-radius:14px}
+ table{width:100%;border-collapse:collapse;min-width:640px}
+ th,td{text-align:left;padding:14px 16px;border-bottom:1px solid #f0f0f0;font-size:.92rem;vertical-align:top}
+ th{background:var(--light,#f4f6f2);font-weight:700}
+ tr:last-child td{border-bottom:none}
+ .cell-pesan{max-width:340px;white-space:pre-wrap}
+ .cell-waktu{white-space:nowrap;color:#666;font-size:.85rem}
+ .empty-msg{padding:30px;text-align:center;color:#777}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="container nav">
+  <a class="logo" href="index.html"><span class="logo-mark">🌿</span><span>SEMPADUNG</span></a>
+  <button class="menu" aria-label="Menu">☰</button>
+  <ul class="links">
+   <li><a href="index.html">Beranda</a></li>
+   <li><a href="tentang.html">Tentang</a></li>
+   <li><a href="potensi.html">Potensi</a></li>
+   <li><a href="pendidikan.html">Pendidikan</a></li>
+   <li><a href="galeri.html">Galeri</a></li>
+   <li><a href="buku-tamu.html">Buku Tamu</a></li>
+  </ul>
+ </div>
+</header>
+
+<main>
+<div class="container admin-wrap">
+ <div class="admin-top">
+  <h1>Dashboard Buku Tamu</h1>
+  <button class="btn-logout" id="logoutBtn">Keluar</button>
+ </div>
+ <p class="admin-status" id="adminStatus">Memuat data...</p>
+ <div class="table-wrap">
+  <table>
+   <thead>
+    <tr>
+     <th>Waktu</th>
+     <th>Nama</th>
+     <th>Email</th>
+     <th>Pesan</th>
+     <th>Kategori</th>
+    </tr>
+   </thead>
+   <tbody id="dataBody"></tbody>
+  </table>
+ </div>
+</div>
+</main>
+
+<footer><div class="container footer">
+ <div><b>🌿 SEMPADUNG</b><br><span class="small">Website Profil & Dokumentasi Sempadung</span></div>
+ <div class="small">© 2026 · Satu website, lima halaman</div>
+</div></footer>
+
+<script src="script.js"></script>
+<script>
+// ============================================
+// GANTI URL DI BAWAH INI, sama persis seperti
+// yang ditempel di admin-login.html dan guestbook.js
+// ============================================
+const ADMIN_API_URL = "https://script.google.com/macros/s/AKfycbyBbUk-zqwrBUJFrIFezz4glHJ-rr6yyU-27ww0QvKRuOUiE1igBY_jRhawdlrGu0j-/exec";
+
+const adminStatus = document.getElementById('adminStatus');
+const dataBody = document.getElementById('dataBody');
+const logoutBtn = document.getElementById('logoutBtn');
+
+function escapeHtml(str) {
+ const div = document.createElement('div');
+ div.textContent = str || '';
+ return div.innerHTML;
+}
+
+function formatWaktu(iso) {
+ try {
+  return new Date(iso).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+ } catch (e) {
+  return iso;
+ }
+}
+
+async function loadData() {
+ const username = sessionStorage.getItem('adminUsername');
+ const password = sessionStorage.getItem('adminPassword');
+
+ if (!username || !password) {
+  window.location.href = 'admin-login.html';
+  return;
+ }
+
+ if (!ADMIN_API_URL || ADMIN_API_URL.includes('PASTE_URL')) {
+  adminStatus.textContent = 'Server belum terhubung, hubungi pengelola website.';
+  return;
+ }
+
+ try {
+  const res = await fetch(ADMIN_API_URL, {
+   method: 'POST',
+   headers: { 'Content-Type': 'text/plain' },
+   body: JSON.stringify({ action: 'data', username, password })
+  });
+  const result = await res.json();
+
+  if (result.status !== 'success') {
+   sessionStorage.removeItem('adminUsername');
+   sessionStorage.removeItem('adminPassword');
+   window.location.href = 'admin-login.html';
+   return;
+  }
+
+  const data = result.data || [];
+
+  if (data.length === 0) {
+   adminStatus.textContent = 'Belum ada data masuk.';
+   dataBody.innerHTML = '';
+   return;
+  }
+
+  adminStatus.textContent = `Total ${data.length} pesan masuk.`;
+  dataBody.innerHTML = data.map(item => `
+   <tr>
+    <td class="cell-waktu">${formatWaktu(item.waktu)}</td>
+    <td>${escapeHtml(item.nama)}</td>
+    <td>${escapeHtml(item.email)}</td>
+    <td class="cell-pesan">${escapeHtml(item.pesan)}</td>
+    <td>${escapeHtml(item.kategori)}</td>
+   </tr>
+  `).join('');
+ } catch (err) {
+  adminStatus.textContent = 'Gagal memuat data, coba lagi.';
+ }
+}
+
+logoutBtn.addEventListener('click', () => {
+ sessionStorage.removeItem('adminUsername');
+ sessionStorage.removeItem('adminPassword');
+ window.location.href = 'admin-login.html';
+});
+
+loadData();
+</script>
+</body>
+</html>
